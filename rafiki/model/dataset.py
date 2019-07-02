@@ -9,6 +9,7 @@ import zipfile
 import io
 import abc
 import csv
+import pandas as pd
 
 logger = logging.getLogger(__name__)
 
@@ -59,6 +60,16 @@ class DatasetUtils():
         '''
         return ImageFilesDataset(dataset_path, min_image_size=min_image_size, max_image_size=max_image_size, 
                                 mode=mode, if_shuffle=if_shuffle)
+
+    def load_dataset_of_tabular_format(self, dataset_path):
+
+        """
+            Loads dataset for the task ``TabularFormat``.
+
+            :param str dataset_path: File path of the dataset
+            :returns: An instance of ``TabularFormatDataset``
+        """
+        return TabularFormatDataset(dataset_path)
 
     def normalize_images(self, images, mean=None, std=None):
         '''
@@ -273,3 +284,22 @@ class ImageFilesDataset(ModelDataset):
         random.shuffle(zipped)
         (images, classes) = zip(*zipped)
         return (images, classes)
+
+class TabularFormatDataset(ModelDataset):
+    '''
+    Class that helps loading of tabular format dataset``.
+
+    Each dataset example is a csv file which will be loaded in to pandas DataFrame format
+    '''   
+
+    def __init__(self, dataset_path):
+        super().__init__(dataset_path)
+        (self.data, self.size) = self._load(self.path)
+        
+    def __getitem__(self, index):
+        return self.data.iloc[:1,:]
+
+    def _load(self, dataset_path):
+        data = pd.read_csv(dataset_path)
+        size = data.size
+        return (data, size)
