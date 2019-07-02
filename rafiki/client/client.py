@@ -375,7 +375,7 @@ class Client():
         # Have defaults for budget
         budget = {
             BudgetOption.TIME_HOURS: 0.1,
-            BudgetOption.GPU_COUNT: 1,
+            BudgetOption.GPU_COUNT: 0,
             **budget
         }
 
