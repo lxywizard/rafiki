@@ -4,6 +4,7 @@
 # Python virtualenv environments
 env/
 envs/
+venv/
 
 # Visual Studio Code config
 .vscode/
@@ -47,3 +48,6 @@ params/*
 
 # SQL dump files
 *.sql
+
+# JSON config files
+*.json
