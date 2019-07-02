@@ -16,7 +16,7 @@ from .model import BaseModel, BaseKnob, Params
 from .utils import serialize_knob_config, deserialize_knob_config, parse_model_install_command, load_model_class
                     
 def tune_model(py_model_class: Type[BaseModel], train_dataset_path: str, val_dataset_path: str, 
-                test_dataset_path: str = None, budget: Budget = None) -> (Dict[str, Any], float, Params):
+                test_dataset_path: str = None, budget: Budget = None, task_type: str = 'classification') -> (Dict[str, Any], float, Params):
     worker_id = 'local'
 
     # Note start time
@@ -33,7 +33,8 @@ def tune_model(py_model_class: Type[BaseModel], train_dataset_path: str, val_dat
 
     # Read budget options from CLI args
     budget_from_args = _maybe_read_budget_from_args()
-    budget = {**(budget or {}), **budget_from_args}
+    budget = {**(budget or {})}
+    # budget = {**(budget or {}), **budget_from_args}
     inform_user(f'Using budget {budget}...')
 
     # Make advisor
@@ -102,18 +103,23 @@ def tune_model(py_model_class: Type[BaseModel], train_dataset_path: str, val_dat
         store_params_id = _save_model(model_inst, proposal, result, param_cache, param_store)
 
         # Update best saved model
-        if result.score is not None and store_params_id is not None and result.score > best_model_score:
-            inform_user('Best saved model so far! Beats previous best of score {}!'.format(best_model_score))
-            best_store_params_id = store_params_id
-            best_proposal = proposal
-            best_model_score = result.score
-            best_trial_no = trial_no
+        if result.score is not None and store_params_id is not None:
+            if best_model_score == 0:
+                is_best_model = True
+            else:
+                is_best_model = (result.score < best_model_score) if task_type == 'regression' else (result.score > best_model_score)
+            if is_best_model:
+                inform_user('Best saved model so far! Beats previous best of score {}!'.format(best_model_score))
+                best_store_params_id = store_params_id
+                best_proposal = proposal
+                best_model_score = result.score
+                best_trial_no = trial_no
 
-            # Test best model, if test dataset provided
-            if test_dataset_path is not None:
-                print('Evaluting new best model on test dataset...')
-                best_model_test_score = model_inst.evaluate(test_dataset_path)
-                inform_user('Score on test dataset: {}'.format(best_model_test_score))
+                # Test best model, if test dataset provided
+                if test_dataset_path is not None:
+                    print('Evaluting new best model on test dataset...')
+                    best_model_test_score = model_inst.evaluate(test_dataset_path)
+                    inform_user('Score on test dataset: {}'.format(best_model_test_score))
 
         # Worker sends result to advisor
         print('Giving feedback to advisor...')
@@ -214,7 +220,7 @@ def make_predictions(queries: List[Any], task: str, py_model_class: Type[BaseMod
 # TODO: Fix method, more thorough testing of model API
 def test_model_class(model_file_path: str, model_class: str, task: str, dependencies: Dict[str, str], 
                     train_dataset_path: str, val_dataset_path: str, test_dataset_path: str = None, 
-                    budget: Budget = None, queries: List[Any] = None) -> (List[Any], BaseModel):
+                    budget: Budget = None, queries: List[Any] = None, task_type: str = 'classification') -> (List[Any], BaseModel):
     '''
     Tests whether a model class is *more likely* to be correctly defined by *locally* simulating a full train-inference flow on your model
     on a given dataset. The model's methods will be called in an manner similar to that in Rafiki.
@@ -246,7 +252,7 @@ def test_model_class(model_file_path: str, model_class: str, task: str, dependen
 
     # Simulation of training
     (best_proposal, _, best_params) = tune_model(py_model_class, train_dataset_path, val_dataset_path, 
-                                                test_dataset_path=test_dataset_path, budget=budget)
+                                                test_dataset_path=test_dataset_path, budget=budget, task_type=task_type)
 
     # Simulation of inference
     model_inst = None
