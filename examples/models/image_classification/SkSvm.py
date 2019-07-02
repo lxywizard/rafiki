@@ -3,6 +3,9 @@ import pickle
 import base64
 import numpy as np
 
+import sys
+sys.path.insert(0, '/Users/pro/Desktop/rafiki')
+
 from rafiki.model import BaseModel, CategoricalKnob, FloatKnob, FixedKnob, utils
 from rafiki.constants import ModelDependency
 from rafiki.model.dev import test_model_class
@@ -94,9 +97,9 @@ if __name__ == '__main__':
         dependencies={
             ModelDependency.SCIKIT_LEARN: '0.20.0'
         },
-        train_dataset_path='data/fashion_mnist_for_image_classification_train.zip',
-        val_dataset_path='data/fashion_mnist_for_image_classification_val.zip',
-        test_dataset_path='data/fashion_mnist_for_image_classification_test.zip',
+        train_dataset_path='/Users/pro/Desktop/rafiki/data/fashion_mnist_for_image_classification_train.zip',
+        val_dataset_path='/Users/pro/Desktop/rafiki/data/fashion_mnist_for_image_classification_val.zip',
+        test_dataset_path='/Users/pro/Desktop/rafiki/data/fashion_mnist_for_image_classification_test.zip',
         queries=[
             [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
