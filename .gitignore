@@ -41,3 +41,6 @@ params/*
 
 # SQL dump files
 *.sql
+
+# JSON config files
+*.json
